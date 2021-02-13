@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <memory.h>
+#include <ctype.h>
 
 #define PAGE_SIZE 4096
 #define CSV_SEPARATOR ';'
@@ -58,6 +59,12 @@ int demappa(char *indirizzo_pagina) {
     return ret;
 }
 
+/**
+ *
+ * @param addr l'indirizzo del separatore (;) prima di una data
+ * @param i
+ * @return
+ */
 char *parseDayOrMonth(const char *addr, long i) {
     unsigned char *giorno_del_mese = malloc(2 * sizeof(unsigned char));
     giorno_del_mese[0] = addr[i + 1];
@@ -66,7 +73,7 @@ char *parseDayOrMonth(const char *addr, long i) {
 }
 
 char *parseYear(const char *addr, long start) {
-    unsigned char *anno = malloc(4 * sizeof(unsigned char));
+    char *anno = malloc(4 * sizeof(unsigned char));
     for (int i = 0; i < 4; i++) {
         anno[i] = addr[start + i + 1];
     }
@@ -82,7 +89,7 @@ char *parseYear(const char *addr, long start) {
  */
 int correggi_singola_data(char *addr, long offset, const char *data_corretta) {
     for (int j = 0; j < 10; j++) {
-        addr[offset + j + 1 ] = data_corretta[j];
+        addr[offset + j + 1] = data_corretta[j];
         AUDIT printf("Carattere %d: %c\n", j, data_corretta[j]);
     }
     return 0;
@@ -109,7 +116,9 @@ long invertiDate(char *addr, int separatori_per_riga, long file_size) {
                 printf("Data corretta: %s\n", data_corretta);
 
                 // copio la prima data nel file:
-                correggi_singola_data(addr, offset, data_corretta);
+                if (addr[offset+1] != CSV_SEPARATOR) {
+                    correggi_singola_data(addr, offset, data_corretta);
+                }
 
             } else if (count == separatori_per_riga) {
                 count = 0;
@@ -119,7 +128,6 @@ long invertiDate(char *addr, int separatori_per_riga, long file_size) {
     }
     return 0;
 }
-
 
 
 /**
@@ -162,7 +170,7 @@ int main(int argc, char *argv[]) {
         numero_separatori = skip_first_line(addr);
         printf("Numero separatori: %d\n", numero_separatori);
     }
-    invertiDate(addr+dim_prima_riga+1, numero_separatori, file_size);
+    invertiDate(addr + dim_prima_riga + 1, numero_separatori, file_size);
 
     demappa(addr);
 
