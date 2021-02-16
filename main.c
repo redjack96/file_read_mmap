@@ -1,3 +1,7 @@
+/**
+ * NON VA!!!
+ */
+
 #include <stdio.h>
 #include <sys/mman.h>
 #include <fcntl.h>
@@ -24,7 +28,7 @@ int one_time = 0; // boolean se 1, non ripete la stessa cosa
 int dim_prima_riga;
 long byte_corretti = 0;
 
-char *mappa(int fd, long file_size);
+char *mappa(int fd, long file_size, int index);
 
 int demappa(char *indirizzo_pagina);
 
@@ -38,7 +42,7 @@ int skip_first_line(const char *addr);
 
 long invertiDate(char *addr, int separatori_per_riga, int indice);
 
-int correggi_singola_data(char *addr, long offset, const char *data_corretta);
+int correggi_singola_data(char *addr, long offset, const char *data_corretta, int byteDaModificare);
 
 /**
  * TODO: se la pagina si ferma a metà di una riga, tornare indietro all'ultimo \n!!!
@@ -207,7 +211,7 @@ int skip_first_line(const char *addr) {
     return conteggio_separatori;
 }
 
-char *mappa(int fd, long file_size) {
+char *mappa(int fd, long file_size, int page_index) {
     char *address;
     if (file_size > PAGE_SIZE) {
         address = (char *) mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd,
@@ -250,7 +254,7 @@ char *parseYear(const char *addr, long start) {
     return anno;
 }
 
-int correggi_singola_data(char *addr, long offset, const char *data_corretta) {
+int correggi_singola_data(char *addr, long offset, const char *data_corretta, int byteDaModificare) {
     for (int j = 0; j < 10; j++) {
         addr[offset + 1 + j] = data_corretta[j];
         AUDIT printf("Carattere %d: %c\n", j, data_corretta[j]);
